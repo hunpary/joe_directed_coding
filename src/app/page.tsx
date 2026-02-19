@@ -50,19 +50,19 @@ export default function LottoPangPangPage() {
   };
 
   const getBallColor = (number: number) => {
-    if (number <= 10) return "bg-yellow-400 text-white border-yellow-500";
-    if (number <= 20) return "bg-blue-500 text-white border-blue-600";
-    if (number <= 30) return "bg-red-500 text-white border-red-600";
-    if (number <= 40) return "bg-gray-500 text-white border-gray-600";
-    return "bg-green-500 text-white border-green-600";
+    if (number <= 10) return "bg-chart-4 text-card-foreground border-chart-4";
+    if (number <= 20) return "bg-chart-3 text-primary-foreground border-chart-3";
+    if (number <= 30) return "bg-chart-1 text-primary-foreground border-chart-1";
+    if (number <= 40) return "bg-muted text-muted-foreground border-border";
+    return "bg-chart-2 text-primary-foreground border-chart-2";
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 bg-background selection:bg-primary/20">
       <header className="text-center mb-8">
         <div className="flex items-center justify-center gap-3">
-          <Clover className="w-10 h-10 text-deep-blue" />
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-deep-blue font-headline">
+          <Clover className="w-10 h-10 text-primary" />
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-primary font-headline">
             로또팡팡
           </h1>
         </div>
@@ -105,7 +105,7 @@ export default function LottoPangPangPage() {
 
                 <div className="text-center">
                   <h3 className="flex items-center justify-center text-sm font-semibold tracking-wider text-muted-foreground uppercase mb-3">
-                    <Sparkles className="w-4 h-4 mr-2 text-yellow-500" />
+                    <Sparkles className="w-4 h-4 mr-2 text-chart-4" />
                     AI 행운 메시지
                   </h3>
                   {luckyMessage ? (
