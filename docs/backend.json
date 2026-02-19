@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "GeneratedLottoSet": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GeneratedLottoSet",
+      "type": "object",
+      "description": "Represents a single set of 6 randomly generated lotto numbers along with an AI-generated lucky message at a specific point in time.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the GeneratedLottoSet entity."
+        },
+        "generatedAt": {
+          "type": "string",
+          "description": "The timestamp when this set of lotto numbers was generated.",
+          "format": "date-time"
+        },
+        "numbers": {
+          "type": "array",
+          "description": "An array containing the 6 unique lotto numbers generated, each ranging from 1 to 45.",
+          "items": {
+            "type": "number"
+          }
+        },
+        "luckyMessage": {
+          "type": "string",
+          "description": "The AI-generated positive and unique message or short phrase associated with this lotto number set."
+        }
+      },
+      "required": [
+        "id",
+        "generatedAt",
+        "numbers",
+        "luckyMessage"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "user",
+          "schema": {
+            "$ref": "#/backend/entities/user"
+          },
+          "description": "Represents a user profile. Serves as an anchor for user-specific data and is crucial for path-based authorization. Includes basic user details (e.g., creation timestamp, last login). Access is restricted to the owner matching `request.auth.uid`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, typically `request.auth.uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/generated_lotto_sets/{generatedLottoSetId}",
+        "definition": {
+          "entityName": "GeneratedLottoSet",
+          "schema": {
+            "$ref": "#/backend/entities/GeneratedLottoSet"
+          },
+          "description": "Stores a single set of 6 randomly generated lotto numbers and an AI-generated lucky message. Access is granted only to the user whose `userId` matches the path parameter. This structure denormalizes the `ownerId` into the path for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who generated this lotto set."
+            },
+            {
+              "name": "generatedLottoSetId",
+              "description": "The unique identifier for this specific generated lotto set, matching the `id` field within the document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The recommended Firestore structure prioritizes robust security, scalability, and debuggability in line with the core design principles. Given the application's sole focus on generating lottery numbers and associated AI messages, the primary entity `GeneratedLottoSet` needs a clear ownership model.\n\nTo achieve **Authorization Independence**, each `GeneratedLottoSet` document is nested under a specific user's path (`/users/{userId}/generated_lotto_sets/{generatedLottoSetId}`). This structure explicitly embeds the `ownerId` (the `userId`) directly into the document's path. Consequently, Firestore security rules can evaluate access to any `generated_lotto_set` document by simply comparing `request.auth.uid` with the `{userId}` wildcard in the path, without needing to perform a `get()` operation on a parent `user` document. This eliminates hierarchical authorization dependencies, enabling atomic operations (like creating a user and their first generated lotto set in a single batch) and significantly simplifying rule logic and debugging.\n\nRegarding **QAPs (Rules are not Filters)**, this path-based ownership is ideal. A user can query their own generated sets by targeting the specific subcollection path: `/users/my_user_id/generated_lotto_sets`. Security rules can then permit `list` operations only if `request.auth.uid == userId`. This ensures that `list` queries are inherently secure, returning only authorized documents, and preventing rules from acting as inefficient server-side filters. This structural segregation (`Structural Segregation` mandate) guarantees that all documents within a given `/users/{userId}/generated_lotto_sets` subcollection share the exact same security posture (owned by `{userId}`), further simplifying rules and enhancing clarity of intent.\n\nWhile a specific `User` entity schema was not provided, a `/users/{userId}` collection is established as per the `Access Modeling` mandate (Private Data: Prefer Path-Based ownership) to anchor all user-specific data, including generated lotto sets. This prepares the application for potential future features like user profiles or saved preferences while maintaining a strong security foundation for the `GeneratedLottoSet` entity. This design fully embraces DBAC principles, relying solely on `request.auth.uid` and database structure for authorization, without custom claims."
+  }
+}

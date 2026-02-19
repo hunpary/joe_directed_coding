@@ -1,0 +1,92 @@
+/**
+ * # Firestore Security Rules
+ *
+ * ## Core Philosophy
+ * This ruleset enforces a strict user-ownership model. All data is considered private and is
+ * exclusively accessible by the user who owns it. There is no public or shared data.
+ *
+ * ## Data Structure
+ * Data is organized hierarchically under a top-level `users` collection. All user-specific
+ * data, such as generated lotto sets, is stored in subcollections within their respective
+ * user document path (e.g., `/users/{userId}/generated_lotto_sets/{setId}`).
+ *
+ * ## Key Security Decisions
+ * - **Path-Based Ownership**: Authorization is determined by the `{userId}` in the document path.
+ *   This is highly performant as it avoids extra database reads (`get()`) to check for ownership.
+ * - **No User Enumeration**: Listing documents from the top-level `/users` collection is explicitly
+ *   disallowed to protect user privacy and prevent data scraping.
+ * - **Default Deny**: Any path not explicitly matched is denied access by default.
+ *
+ * ## Denormalization for Authorization
+ * The primary security strategy is to use the document path for authorization. By nesting all
+ * user-content under `/users/{userId}`, we denormalize the owner's ID into the path itself,
+ * creating a simple, fast, and highly secure way to check for ownership (`request.auth.uid == userId`).
+ *
+ * ## Structural Segregation
+ * Each user's data is segregated into its own subcollection path. This ensures that queries
+ * for a user's private data (e.g., `db.collection('users/abc/generated_lotto_sets').get()`)
+ * can only ever target documents that the user is authorized to read, aligning perfectly
+ * with the principle that "rules are not filters."
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to promote readable and reusable logic.
+
+    /**
+     * Verifies the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Verifies the requesting user's UID matches the userId from the path.
+     * This is the core of the ownership security model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Verifies ownership for an existing document.
+     * CRITICAL: Used for update/delete to prevent acting on non-existent data.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Controls access to a user's own profile document.
+     * @path /users/{userId}
+     * @allow A user (uid: 'user123') can (create) their own profile at /users/user123.
+     * @deny An anonymous user cannot (get) any user's profile.
+     * @deny A logged-in user (uid: 'user123') cannot (update) another user's profile at /users/user456.
+     * @principle Restricts access to a user's own data tree (Self-Creation & Ownership).
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Disallow listing all users to protect privacy.
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures a user's private collection of generated lotto number sets.
+     * @path /users/{userId}/generated_lotto_sets/{generatedLottoSetId}
+     * @allow A user (uid: 'user123') can (list) their own lotto sets from /users/user123/generated_lotto_sets.
+     * @allow A user (uid: 'user123') can (create) a new lotto set at /users/user123/generated_lotto_sets/newSetId.
+     * @deny A logged-in user (uid: 'user456') cannot (get) a lotto set from /users/user123/generated_lotto_sets/someSetId.
+     * @principle Enforces document ownership using path-based security. All data within this subcollection is private to the owner.
+     */
+    match /users/{userId}/generated_lotto_sets/{generatedLottoSetId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == generatedLottoSetId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}
