@@ -50,10 +50,10 @@ export default function LottoPangPangPage() {
   };
 
   const getBallColor = (number: number) => {
-    if (number <= 10) return "bg-chart-4 text-card-foreground border-chart-4";
+    if (number <= 10) return "bg-chart-4 text-foreground border-chart-4";
     if (number <= 20) return "bg-chart-3 text-primary-foreground border-chart-3";
     if (number <= 30) return "bg-chart-1 text-primary-foreground border-chart-1";
-    if (number <= 40) return "bg-muted text-muted-foreground border-border";
+    if (number <= 40) return "bg-secondary text-secondary-foreground border-secondary";
     return "bg-chart-2 text-primary-foreground border-chart-2";
   };
 
