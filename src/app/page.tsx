@@ -45,7 +45,7 @@ export default function LottoPangPangPage() {
       toast({
         variant: 'destructive',
         title: '로그아웃 오류',
-        description: '로그아웃에 실패했습니다.',
+        description: '로그아웃에 실패했습니다!!!!',
       });
     }
   };
