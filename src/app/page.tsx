@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useAuth, useUser } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ModeToggle } from '@/components/mode-toggle';
 
 export default function LottoPangPangPage() {
   const [numbers, setNumbers] = useState<number[]>([]);
@@ -93,7 +94,8 @@ export default function LottoPangPangPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 bg-background selection:bg-primary/20">
-      <header className="absolute top-4 right-4 text-center mb-8">
+      <header className="absolute top-4 right-4 flex items-center gap-2 mb-8">
+        <ModeToggle />
         {isUserLoading ? (
           <Skeleton className="h-10 w-28" />
         ) : user ? (
