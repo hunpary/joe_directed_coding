@@ -94,6 +94,7 @@ export default function LottoPangPangPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 bg-background selection:bg-primary/20">
+      <div className="fixed top-0 left-0 bg-red-500 text-white p-2 z-50">Debug: Page Rendered</div>
       <header className="absolute top-4 right-4 flex items-center gap-2 mb-8">
         <ModeToggle />
         {isUserLoading ? (
