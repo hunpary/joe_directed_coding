@@ -2,6 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  output: 'export', // (핵심) 정적 export로 빌드
   typescript: {
     ignoreBuildErrors: true,
   },
