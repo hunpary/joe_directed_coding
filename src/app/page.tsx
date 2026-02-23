@@ -13,6 +13,7 @@ import { useAuth, useUser } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/mode-toggle';
+import { AffiliateForm } from '@/components/AffiliateForm';
 
 export default function LottoPangPangPage() {
   const [numbers, setNumbers] = useState<number[]>([]);
@@ -200,6 +201,11 @@ export default function LottoPangPangPage() {
             {isLoading ? '번호 생성 중...' : '새로운 번호 생성'}
           </Button>
         </footer>
+      </div>
+
+      <div className="w-full max-w-2xl mt-20 mb-10">
+        <Separator className="my-10" />
+        <AffiliateForm />
       </div>
     </div>
   );
